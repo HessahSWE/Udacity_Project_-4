@@ -19,35 +19,45 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfiguration {
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors().and().csrf().disable()
-                .authorizeHttpRequests(authz -> authz
-                        .mvcMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_URL).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
-                .addFilterBefore(new JWTAuthenticationFilter(authenticationManager(http.getSharedObject(AuthenticationConfiguration.class))), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new JWTAuthenticationVerificationFilter(authenticationManager(http.getSharedObject(AuthenticationConfiguration.class))), BasicAuthenticationFilter.class);
+        @Bean
+        public BCryptPasswordEncoder bCryptPasswordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-        return http.build();
-    }
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.debug(true);
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+                        throws Exception {
+                return authenticationConfiguration.getAuthenticationManager();
+        }
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors().and().csrf().disable()
+                                .authorizeHttpRequests(authz -> authz
+                                                .mvcMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_URL).permitAll()
+                                                .anyRequest().authenticated())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(
+                                                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                                .addFilterBefore(
+                                                new JWTAuthenticationFilter(
+                                                                authenticationManager(http.getSharedObject(
+                                                                                AuthenticationConfiguration.class))),
+                                                UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(
+                                                new JWTAuthenticationVerificationFilter(
+                                                                authenticationManager(http.getSharedObject(
+                                                                                AuthenticationConfiguration.class))),
+                                                BasicAuthenticationFilter.class);
+
+                return http.build();
+        }
+
+        @Bean
+        public WebSecurityCustomizer webSecurityCustomizer() {
+                return web -> web.debug(true);
+        }
 }
